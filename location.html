@@ -1,0 +1,796 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Camping Locations</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Font Awesome for icons -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+
+    <!-- Leaflet CSS -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.3/dist/leaflet.css" />
+    <!-- Leaflet Search CSS -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet-search@3.0.9/dist/leaflet-search.min.css" />
+
+    <style>
+    /* NAVBAR STYLES - FIXED OPAQUE VERSION */
+    .navbar {
+        background-color: #0a1a2b !important; /* Always solid color */
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
+        transition: all 0.3s;
+    }
+    :root {
+    --starry-night: #0b1a2e;
+    --moonlight: #ffffff;
+    --campfire: #ffffff;
+    --starlight: #1e88e5;
+    --twilight: #4a148c;
+    --forest: #2e7d32;
+}
+
+    /* Remove the scrolled class since we're always solid */
+    /* Remove or comment out this part:
+    .navbar.scrolled {
+        background-color: #0a1a2b !important;
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
+    }
+    */
+
+    /* Keep the rest of your styles */
+    .hero-section {
+        background: linear-gradient(rgba(0, 0, 0, 0.3), rgba(0, 0, 0, 0.3)), url('night star.jpg');
+        background-size: cover;
+        background-position: center;
+        background-attachment: fixed;
+        height: 60vh;
+        display: flex;
+        align-items: center;
+        color: white;
+        margin-top: 56px; /* Add margin to account for fixed navbar */
+    }
+
+    .hero-section h1 {
+        text-shadow: 2px 2px 8px rgba(0, 0, 0, 0.8);
+    }
+
+    .hero-section p {
+        text-shadow: 1px 1px 4px rgba(0, 0, 0, 0.8);
+    }
+
+    footer {
+        background-color: #0a1a2b;
+        color: white;
+    }
+
+    /* MAP STYLES */
+    #leaflet-map {
+        height: 500px;
+        width: 100%;
+        border-radius: 8px;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        z-index: 1;
+    }
+
+    .leaflet-control-filter {
+        padding: 10px;
+        background: white;
+        border-radius: 5px;
+        box-shadow: 0 1px 5px rgba(0,0,0,0.4);
+    }
+
+    .map-info-window {
+        padding: 10px;
+    }
+
+    .custom-icon {
+        background: none;
+        border: none;
+    }
+
+    .marker-icon {
+        width: 25px;
+        height: 41px;
+    }
+    
+    /* Search control styles */
+    .leaflet-control-search {
+        background: white;
+        border-radius: 5px;
+        box-shadow: 0 1px 5px rgba(0,0,0,0.4);
+        padding: 5px;
+    }
+    
+    .leaflet-control-search .search-input {
+        width: 200px;
+        padding: 5px;
+        border: 1px solid #ddd;
+        border-radius: 3px;
+    }
+    
+    .leaflet-control-search .search-button {
+        background: none;
+        border: none;
+        cursor: pointer;
+        padding: 5px;
+    }
+    
+    /* New icon colors */
+    .leaflet-marker-icon .marker-icon-desert {
+        filter: hue-rotate(40deg) brightness(1.2);
+    }
+</style>
+<style>
+    .star-icon-wrapper {
+  display: inline-block;
+}
+
+#cartBadge {
+  font-size: 0.65rem;
+  padding: 3px 6px;
+}
+
+    /* Sidebar Styles */
+    .sidebar-overlay {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background-color: rgba(0, 0, 0, 0.5);
+        z-index: 1040;
+        opacity: 0;
+        visibility: hidden;
+        transition: all 0.3s ease;
+    }
+    
+    .sidebar {
+        position: fixed;
+        top: 0;
+        left: -300px;
+        width: 280px;
+        height: 100%;
+        background-color: var(--starry-night);
+        color: white;
+        z-index: 1050;
+        transition: all 0.3s ease;
+        box-shadow: 2px 0 10px rgba(0, 0, 0, 0.1);
+        display: flex;
+        flex-direction: column;
+    }
+    
+    .sidebar-header {
+        padding: 20px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    }
+    
+    .sidebar-header h3 {
+        margin: 0;
+        color: white;
+    }
+    
+    .sidebar-close-btn {
+        background: none;
+        border: none;
+        color: white;
+        font-size: 24px;
+        cursor: pointer;
+        padding: 0;
+    }
+    
+    .sidebar-menu {
+        list-style: none;
+        padding: 0;
+        margin: 0;
+        flex-grow: 1;
+    }
+    
+    .sidebar-menu li a {
+        display: block;
+        padding: 12px 20px;
+        color: white;
+        text-decoration: none;
+        transition: all 0.2s;
+        border-left: 3px solid transparent;
+    }
+    
+    .sidebar-menu li a:hover {
+        background-color: rgba(255, 255, 255, 0.1);
+        border-left: 3px solid var(--starlight);
+    }
+    
+    .sidebar-menu li a i {
+        width: 20px;
+        text-align: center;
+    }
+    
+    .sidebar-footer {
+        padding: 20px;
+        border-top: 1px solid rgba(255, 255, 255, 0.1);
+    }
+    
+    /* Show sidebar when active */
+    .sidebar-active .sidebar {
+        left: 0;
+    }
+    
+    .sidebar-active .sidebar-overlay {
+        opacity: 1;
+        visibility: visible;
+    }
+</style>
+</head>
+<body>
+
+<!-- Navigation Bar -->
+    <nav class="navbar navbar-expand-lg navbar-dark fixed-top">
+        <div class="container">
+            <a class="navbar-brand" href="#">
+                <span class="star-icon-wrapper position-relative">
+  <i class="fas fa-star me-2"></i>
+  <span id="cartBadge" class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger d-none">
+    0
+  </span>
+</span>
+Starry Night Camping
+            </a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav ms-auto">
+                    <li class="nav-item">
+                        <a class="nav-link" href="index.html">Home</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link active" href="location.html">Stargazing Spots</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="tents.html">Camping Gears</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="astronomy.html">Astronomy Tips</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="about.html">About</a>
+                    </li>
+                </ul>
+                <div class="d-flex align-items-center ms-lg-3">
+                    <div class="dropdown">
+                        <a href="#" class="profile-icon dropdown-toggle" id="dropdownUser" data-bs-toggle="dropdown" aria-expanded="false">
+                            <span id="profileIcon">
+                                <i class="fas fa-user"></i>
+                            </span>
+                        </a>
+                        <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="dropdownUser">
+                            <li><a class="dropdown-item" href="profile.html"><i class="fas fa-user-circle me-2"></i>My Profile</a></li>
+                            <li><a class="dropdown-item" href="#"><i class="fas fa-calendar-check me-2"></i>My Bookings</a></li>
+                            <li><a class="dropdown-item" href="#"><i class="fas fa-heart me-2"></i>Wishlist</a></li>
+                            <li><hr class="dropdown-divider"></li>
+                            <li>
+  <a class="dropdown-item" href="register.html" id="loginBtn">
+    <i class="fas fa-sign-in-alt me-2"></i>Sign In
+  </a>
+</li>
+
+                            <li><a class="dropdown-item d-none" href="#" id="logoutBtn"><i class="fas fa-sign-out-alt me-2"></i>Sign Out</a></li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </nav>
+<script>
+  document.addEventListener('DOMContentLoaded', () => {
+    const loginBtn = document.getElementById('loginBtn');
+    const logoutBtn = document.getElementById('logoutBtn');
+    const profileIcon = document.getElementById('profileIcon');
+    const profilePicture = localStorage.getItem('profilePicture');
+    const userData = localStorage.getItem('userData');
+
+    function isLoggedIn() {
+      return userData !== null;
+    }
+
+    // Show profile picture if available
+    if (profilePicture && profileIcon) {
+      profileIcon.innerHTML = `
+        <img src="${profilePicture}" 
+             alt="Profile" 
+             class="rounded-circle"
+             style="width: 32px; height: 32px; object-fit: cover;">
+      `;
+    }
+
+    // Toggle login/logout buttons
+    if (isLoggedIn()) {
+      loginBtn.classList.add('d-none');
+      logoutBtn.classList.remove('d-none');
+    } else {
+      loginBtn.classList.remove('d-none');
+      logoutBtn.classList.add('d-none');
+    }
+
+    // Logout logic
+    logoutBtn.addEventListener('click', (e) => {
+      e.preventDefault();
+      localStorage.removeItem('userData');
+      localStorage.removeItem('profilePicture');
+      window.location.href = 'register.html'; // or home.html
+    });
+  });
+</script>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        const profileIcon = document.getElementById('profileIcon');
+        const profilePicture = localStorage.getItem('profilePicture');
+
+        if (profilePicture && profileIcon) {
+            profileIcon.innerHTML = `
+                <img src="${profilePicture}" 
+                     alt="Profile" 
+                     class="rounded-circle"
+                     style="width: 32px; height: 32px; object-fit: cover;">
+            `;
+        }
+    });
+</script>
+
+<!-- Add this right after the </nav> closing tag -->
+<div class="sidebar-overlay"></div>
+<aside class="sidebar">
+    <div class="sidebar-header">
+        <h3><i class="fas fa-star me-2"></i>Menu</h3>
+        <button class="sidebar-close-btn">&times;</button>
+    </div>
+    <ul class="sidebar-menu">
+        <li><a href="index.html"><i class="fas fa-home me-2"></i>Home</a></li>
+        <li><a href="location.html"><i class="fas fa-map-marked-alt me-2"></i>Stargazing Spots</a></li>
+        <li><a href="camping.html"><i class="fas fa-campground me-2"></i>Camping Gears</a></li>
+        <li><a href="astronomy.html"><i class="fas fa-star-and-crescent me-2"></i>Astronomy Tips</a></li>
+        <li><a href="about.html"><i class="fas fa-info-circle me-2"></i>About</a></li>
+        <li><a href="cart.html" id="cartLink"><i class="fas fa-shopping-cart me-2"></i>Cart</a></li>
+    </ul>
+    <div class="sidebar-footer">
+        <button class="btn btn-starry btn-sm" onclick="window.location.href='register.html'">
+            <i class="fas fa-user-plus me-2"></i>sign in
+        </button>
+    </div>
+</aside>
+
+<script>
+    // 🔴 Update star icon badge
+function updateStarBadge() {
+    const badge = document.getElementById("cartBadge");
+    const cartItems = JSON.parse(localStorage.getItem("cartItems")) || [];
+    if (badge) {
+        if (cartItems.length > 0) {
+            badge.textContent = cartItems.length;
+            badge.classList.remove("d-none");
+        } else {
+            badge.classList.add("d-none");
+        }
+    }
+}
+
+updateStarBadge(); // Also run on page load
+
+    document.addEventListener('DOMContentLoaded', function () {
+        // Sidebar Elements
+        const starIcon = document.querySelector('.navbar-brand i.fa-star');
+        const sidebarOverlay = document.querySelector('.sidebar-overlay');
+        const sidebarCloseBtn = document.querySelector('.sidebar-close-btn');
+        const cartLink = document.getElementById('cartLink');
+
+        // Update cart count in sidebar
+        function updateCartCount() {
+            const cart = JSON.parse(localStorage.getItem('cart')) || [];
+            if (cartLink) {
+                if (cart.length > 0) {
+                    cartLink.innerHTML = `<i class="fas fa-shopping-cart me-2"></i>Cart (${cart.length})`;
+                } else {
+                    cartLink.innerHTML = `<i class="fas fa-shopping-cart me-2"></i>Cart`;
+                }
+            }
+        }
+
+        updateCartCount(); // Call it on page load
+
+        // Toggle sidebar when star icon is clicked
+        starIcon?.addEventListener('click', function (e) {
+            e.preventDefault();
+            document.body.classList.add('sidebar-active');
+        });
+
+        // Close sidebar when overlay or close button is clicked
+        sidebarOverlay?.addEventListener('click', function () {
+            document.body.classList.remove('sidebar-active');
+        });
+
+        sidebarCloseBtn?.addEventListener('click', function () {
+            document.body.classList.remove('sidebar-active');
+        });
+
+        // Close sidebar on ESC key
+        document.addEventListener('keydown', function (e) {
+            if (e.key === 'Escape') {
+                document.body.classList.remove('sidebar-active');
+            }
+        });
+    });
+</script>
+<!-- Main Section -->
+<section class="py-5 mt-5">
+    <div class="container py-5">
+        <h2 class="text-center mb-5">Explore Our Camping Locations</h2>
+
+        <div id="leaflet-map"></div>
+
+        <div class="row mt-5">
+            <!-- Optional location cards here -->
+        </div>
+    </div>
+</section>
+
+<!-- Leaflet JS -->
+<script src="https://unpkg.com/leaflet@1.9.3/dist/leaflet.js"></script>
+<!-- Leaflet Search JS -->
+<script src="https://unpkg.com/leaflet-search@3.0.9/dist/leaflet-search.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        // Make navbar solid on scroll
+        window.addEventListener('scroll', function () {
+            const navbar = document.querySelector('.navbar');
+            if (window.scrollY > 50) {
+                navbar.classList.add('scrolled');
+            } else {
+                navbar.classList.remove('scrolled');
+            }
+        });
+
+        // Initialize Leaflet map
+        const map = L.map('leaflet-map').setView([37.0902, -95.7129], 4);
+
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+        }).addTo(map);
+
+        const forestIcon = L.icon({
+            iconUrl: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-green.png',
+            iconSize: [25, 41],
+            iconAnchor: [12, 41],
+            popupAnchor: [1, -34]
+        });
+
+        const lakeIcon = L.icon({
+            iconUrl: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-blue.png',
+            iconSize: [25, 41],
+            iconAnchor: [12, 41],
+            popupAnchor: [1, -34]
+        });
+
+        const mountainIcon = L.icon({
+            iconUrl: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-red.png',
+            iconSize: [25, 41],
+            iconAnchor: [12, 41],
+            popupAnchor: [1, -34]
+        });
+
+        const desertIcon = L.icon({
+            iconUrl: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-orange.png',
+            iconSize: [25, 41],
+            iconAnchor: [12, 41],
+            popupAnchor: [1, -34]
+        });
+
+        const locations = [
+            {
+                position: [36.0544, -112.1401],
+                title: "Grand Canyon Star Camp",
+                type: "mountain",
+                icon: mountainIcon,
+                info: `<div class="map-info-window">
+                        <img src="img/grand canyon.JPG" 
+                             alt="Grand Canyon at night" 
+                             class="img-fluid rounded mb-2">
+                        <h5>Grand Canyon Star Camp</h5>
+                        <p>Experience breathtaking canyon views under dark skies</p>
+                        <a href="grand-canyon.html" class="btn btn-sm btn-primary">View Details</a>
+                       </div>`
+            },
+            {
+                position: [44.4279, -110.5885],
+                title: "Yellowstone Lakeside",
+                type: "lake",
+                icon: lakeIcon,
+                info: `<div class="map-info-window">
+                        <img src="img/lake.JPG" 
+                             alt="Yellowstone Lake at night" 
+                             class="img-fluid rounded mb-2">
+                        <h5>Yellowstone Lakeside</h5>
+                        <p>Camp by pristine lakes with amazing wildlife</p>
+                        <a href="yellowstone.html" class="btn btn-sm btn-primary">View Details</a>
+                       </div>`
+            },
+            {
+                position: [47.7511, -120.7401],
+                title: "Cascade Forest Retreat",
+                type: "forest",
+                icon: forestIcon,
+                info: `<div class="map-info-window">
+                        <img src="foresty.JPG" 
+                             alt="Forest camping at night" 
+                             class="img-fluid rounded mb-2">
+                        <h5>Cascade Forest Retreat</h5>
+                        <p>Dense forest camping with perfect stargazing clearings</p>
+                        <a href="cascade.html" class="btn btn-sm btn-primary">View Details</a>
+                       </div>`
+            },
+            {
+                position: [63.1148, -151.1926],
+                title: "Denali National Park & Reserve",
+                type: "mountain",
+                icon: mountainIcon,
+                info: `<div class="map-info-window">
+                        <img src="img/mountain.JPG" 
+                             alt="Denali National Park at night" 
+                             class="img-fluid rounded mb-2">
+                        <h5>Denali National Park & Reserve</h5>
+                        <p>Witness the northern lights and stunning mountain views under Alaska's dark skies</p>
+                        <a href="denali.html" class="btn btn-sm btn-primary">View Details</a>
+                       </div>`
+            },
+            {
+                position: [38.9478, -120.0805],
+                title: "Alpine Star Peak",
+                type: "mountain",
+                icon: mountainIcon,
+                info: `<div class="map-info-window">
+                        <img src="img/OIP.JPG" 
+                             alt="Alpine Star Peak at night" 
+                             class="img-fluid rounded mb-2">
+                        <h5>Alpine Star Peak</h5>
+                        <p>High-altitude stargazing with panoramic mountain views and crystal-clear night skies</p>
+                        <a href="alpine-star-peak.html" class="btn btn-sm btn-primary">View Details</a>
+                       </div>`
+            },
+            {
+                position: [36.6050, -117.1480],
+                title: "Desert Star Sanctuary",
+                type: "desert",
+                icon: desertIcon,
+                info: `<div class="map-info-window">
+                        <img src="dessert.JPG" 
+                             alt="Desert Star Sanctuary at night" 
+                             class="img-fluid rounded mb-2">
+                        <h5>Desert Star Sanctuary</h5>
+                        <p>Experience the magic of stargazing in one of the darkest desert skies with breathtaking views of the Milky Way</p>
+                        <a href="desert-star.html" class="btn btn-sm btn-primary">View Details</a>
+                       </div>`
+            },
+            {
+                position: [44.5588, -110.4417], // Coordinates for Yellowstone Lake area
+                title: "Lakeside Star Haven",
+                type: "lake",
+                icon: lakeIcon,
+                info: `<div class="map-info-window">
+                        <img src="img/lakey.JPG" 
+                             alt="Lakeside Star Haven at night" 
+                             class="img-fluid rounded mb-2">
+                        <h5>Lakeside Star Haven</h5>
+                        <p>Perfect combination of serene lake views and spectacular night skies reflected on the water's surface</p>
+                        <a href="lakeside-haven.html" class="btn btn-sm btn-primary">View Details</a>
+                       </div>`
+            }
+        ];
+
+        const markers = [];
+        locations.forEach(location => {
+            const marker = L.marker(location.position, {
+                title: location.title,
+                icon: location.icon,
+                type: location.type
+            }).addTo(map);
+
+            marker.bindPopup(location.info);
+            markers.push(marker);
+        });
+
+        // Create search control
+        const searchControl = new L.Control.Search({
+            position: 'topleft',
+            layer: L.layerGroup(markers),
+            propertyName: 'title',
+            marker: false,
+            moveToLocation: function(latlng, title, map) {
+                map.setView(latlng, 8); // zoom level 8
+            }
+        });
+        
+        searchControl.on('search:locationfound', function(e) {
+            e.layer.openPopup();
+        });
+        
+        map.addControl(searchControl);
+
+        // Filter control
+        const filterControl = L.control({position: 'topright'});
+        filterControl.onAdd = function (map) {
+            const div = L.DomUtil.create('div', 'leaflet-control-filter');
+            div.innerHTML = `
+                <h6>Filter Sites:</h6>
+                <div class="form-check">
+                    <input class="form-check-input" type="checkbox" id="leafletForestCheck" checked>
+                    <label class="form-check-label" for="leafletForestCheck">Forest Sites</label>
+                </div>
+                <div class="form-check">
+                    <input class="form-check-input" type="checkbox" id="leafletLakeCheck" checked>
+                    <label class="form-check-label" for="leafletLakeCheck">Lakeside Sites</label>
+                </div>
+                <div class="form-check">
+                    <input class="form-check-input" type="checkbox" id="leafletMountainCheck" checked>
+                    <label class="form-check-label" for="leafletMountainCheck">Mountain Sites</label>
+                </div>
+                <div class="form-check">
+                    <input class="form-check-input" type="checkbox" id="leafletDesertCheck" checked>
+                    <label class="form-check-label" for="leafletDesertCheck">Desert Sites</label>
+                </div>
+            `;
+            return div;
+        };
+
+        filterControl.addTo(map);
+
+        document.querySelectorAll('.leaflet-control-filter .form-check-input').forEach(checkbox => {
+            checkbox.addEventListener('change', function () {
+                const type = this.id.replace('leaflet', '').replace('Check', '').toLowerCase();
+                markers.forEach(marker => {
+                    if (marker.options.type === type) {
+                        if (this.checked) {
+                            map.addLayer(marker);
+                        } else {
+                            map.removeLayer(marker);
+                        }
+                    }
+                });
+            });
+        });
+    });
+</script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Get the star icon in navbar
+        const starIcon = document.querySelector('.navbar-brand');
+        const sidebarOverlay = document.querySelector('.sidebar-overlay');
+        const sidebarCloseBtn = document.querySelector('.sidebar-close-btn');
+        
+        // Toggle sidebar when star icon is clicked
+        starIcon.addEventListener('click', function(e) {
+            e.preventDefault();
+            document.body.classList.add('sidebar-active');
+        });
+        
+        // Close sidebar when overlay is clicked
+        sidebarOverlay.addEventListener('click', function() {
+            document.body.classList.remove('sidebar-active');
+        });
+        
+        // Close sidebar when close button is clicked
+        sidebarCloseBtn.addEventListener('click', function() {
+            document.body.classList.remove('sidebar-active');
+        });
+        
+        // Close sidebar when ESC key is pressed
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape') {
+                document.body.classList.remove('sidebar-active');
+            }
+        });
+    });
+    // Load profile picture on every page
+document.addEventListener('DOMContentLoaded', function() {
+    const savedPic = localStorage.getItem('profilePicture');
+    const profileIcon = document.getElementById('profileIcon');
+    
+    if (savedPic && profileIcon) {
+        profileIcon.innerHTML = `
+            <img src="${savedPic}" 
+                 alt="Profile" 
+                 class="rounded-circle"
+                 style="width:32px; height:32px; object-fit:cover;">
+        `;
+    }
+});
+</script>
+<footer class="py-5 bg-dark text-white">
+        <div class="container py-4">
+            <div class="row">
+                <div class="col-lg-4 mb-4 mb-lg-0">
+                    <h5 class="text-uppercase mb-4">Starry Night Camping</h5>
+                    <p>Helping humanity remember we all live under the same sky.</p>
+                    <div class="mt-4">
+                        <a href="https://www.instagram.com/" class="text-white me-3"><i class="fab fa-instagram fa-lg"></i></a>
+                        <a href="https://www.facebook.com/share/v/1AaSpL8zLS/
+" class="text-white me-3"><i class="fab fa-facebook-f fa-lg"></i></a>
+                        <a href="https://x.com/shadowelkaiser/status/1918601825860632608?t=lrTATOUKrmp-6G6fyKtahQ&s=19" class="text-white me-3"><i class="fab fa-twitter fa-lg"></i></a>
+                        <a href="https://youtube.com/shorts/3-RlRmYshCQ?si=HyGl8HQXtO9KjAkM" class="text-white"><i class="fab fa-youtube fa-lg"></i></a>
+                    </div>
+                </div>
+                <div class="col-lg-4 mb-4 mb-lg-0">
+                    <h5 class="text-uppercase mb-4">Quick Links</h5>
+                    <ul class="list-unstyled">
+                        <li class="mb-2"><a href="index.html" class="text-white">Home</a></li>
+                        <li class="mb-2"><a href="about.html" class="text-white">About</a></li>
+                        <li class="mb-2"><a href="locations.html" class="text-white">Locations</a></li>
+                        <li class="mb-2"><a href="blog.html" class="text-white">Star Blog</a></li>
+                        <li><a href="cart.html" class="text-white">Your cart</a></li>
+                    </ul>
+                </div>
+                <div class="col-lg-4">
+                    <h5 class="text-uppercase mb-4">Dark Sky Alerts</h5>
+                    <p>Subscribe to know when the best stargazing nights are coming.</p>
+                    <form id="subscribeForm">
+                        <div class="mb-3">
+                            <input type="email" id="emailInput" class="form-control" placeholder="Your email" required>
+                        </div>
+                        <button type="submit" id="subscribeBtn" class="btn btn-outline-light w-100">
+                            <i class="fas fa-envelope me-2"></i><span id="subscribeText">Subscribe</span>
+                        </button>
+                    </form>
+                </div>
+            </div>
+            <hr class="my-4 bg-secondary">
+            <div class="text-center small">
+                <p class="mb-0">&copy; 2023 Starry Night Camping. All rights reserved.</p>
+            </div>
+        </div>
+    </footer>
+    <script>
+  const form = document.getElementById("subscribeForm");
+  const emailInput = document.getElementById("emailInput");
+  const subscribeBtn = document.getElementById("subscribeBtn");
+  const subscribeText = document.getElementById("subscribeText");
+
+  // Check sessionStorage on load
+  if (sessionStorage.getItem("subscribed") === "true") {
+    setSubscribedState();
+  }
+
+  form.addEventListener("submit", function (e) {
+    e.preventDefault();
+
+    const email = emailInput.value.trim();
+    const isValid = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+
+    if (isValid) {
+      sessionStorage.setItem("subscribed", "true");
+      setSubscribedState();
+      emailInput.value = "";
+    }
+  });
+
+  subscribeBtn.addEventListener("click", function () {
+    if (sessionStorage.getItem("subscribed") !== "true") {
+      sessionStorage.setItem("subscribed", "true");
+      setSubscribedState();
+      emailInput.value = "";
+    }
+  });
+
+  function setSubscribedState() {
+    subscribeBtn.classList.remove("btn-outline-light");
+    subscribeBtn.classList.add("btn-light", "text-dark");
+    subscribeText.textContent = "Subscribed";
+  }
+</script>
+</body>
+</html>

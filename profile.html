@@ -1,0 +1,463 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>User Profile</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet" />
+  <script src="https://kit.fontawesome.com/a076d05399.js" crossorigin="anonymous"></script>
+  <!-- Navigation Bar -->
+    <nav class="navbar navbar-expand-lg navbar-dark fixed-top" style="background-color: #0b1a2e;">
+        <div class="container">
+            <a class="navbar-brand" href="#">
+                <i class="fas fa-star me-2"></i>Starry Night Camping
+            </a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav ms-auto">
+                    <li class="nav-item">
+                        <a class="nav-link" href="index.html">Home</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="location.html">Stargazing Spots</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="camping.html">Camping Gears</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="astronomy.html">Astronomy Tips</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="about.html">About</a>
+                    </li>
+                </ul>
+                <div class="d-flex align-items-center ms-lg-3">
+                    <div class="dropdown">
+                        <a href="#" class="profile-icon dropdown-toggle" id="dropdownUser" data-bs-toggle="dropdown" aria-expanded="false">
+                            <span id="profileIcon">
+                                <i class="fas fa-user"></i>
+                            </span>
+                        </a>
+                        <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="dropdownUser">
+                            <li><a class="dropdown-item" href="profile.html"><i class="fas fa-user-circle me-2"></i>My Profile</a></li>
+                            <li><a class="dropdown-item" href="#"><i class="fas fa-calendar-check me-2"></i>My Bookings</a></li>
+                            <li><a class="dropdown-item" href="#"><i class="fas fa-heart me-2"></i>Wishlist</a></li>
+                            <li><hr class="dropdown-divider"></li>
+                            <li><a class="dropdown-item" href="#" id="loginBtn"><i class="fas fa-sign-in-alt me-2"></i>Sign In</a></li>
+                            <li><a class="dropdown-item d-none" href="#" id="logoutBtn"><i class="fas fa-sign-out-alt me-2"></i>Sign Out</a></li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </nav>
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        const profileIcon = document.getElementById('profileIcon');
+        const profilePicture = localStorage.getItem('profilePicture');
+
+        if (profilePicture && profileIcon) {
+            profileIcon.innerHTML = `
+                <img src="${profilePicture}" 
+                     alt="Profile" 
+                     class="rounded-circle"
+                     style="width: 32px; height: 32px; object-fit: cover;">
+            `;
+        }
+    });
+</script>
+
+<!-- Add this right after the </nav> closing tag -->
+<div class="sidebar-overlay"></div>
+<aside class="sidebar">
+    <div class="sidebar-header">
+        <h3><i class="fas fa-star me-2"></i>Menu</h3>
+        <button class="sidebar-close-btn">&times;</button>
+    </div>
+    <ul class="sidebar-menu">
+        <li><a href="index.html"><i class="fas fa-home me-2"></i>Home</a></li>
+        <li><a href="location.html"><i class="fas fa-map-marked-alt me-2"></i>Stargazing Spots</a></li>
+        <li><a href="camping.html"><i class="fas fa-campground me-2"></i>Camping Gears</a></li>
+        <li><a href="astronomy.html"><i class="fas fa-star-and-crescent me-2"></i>Astronomy Tips</a></li>
+        <li><a href="about.html"><i class="fas fa-info-circle me-2"></i>About</a></li>
+        <li><a href="cart.html" id="cartLink"><i class="fas fa-shopping-cart me-2"></i>Cart</a></li>
+    </ul>
+    <div class="sidebar-footer">
+        <button class="btn btn-starry btn-sm" onclick="window.location.href='register.html'">
+    <i class="fas fa-user-plus me-2"></i>sign in
+</button>
+    </div>
+</aside>
+<style>
+    /* Sidebar Styles */
+    .sidebar-overlay {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background-color: rgba(0, 0, 0, 0.5);
+        z-index: 1040;
+        opacity: 0;
+        visibility: hidden;
+        transition: all 0.3s ease;
+    }
+    
+    .sidebar {
+        position: fixed;
+        top: 0;
+        left: -300px;
+        width: 280px;
+        height: 100%;
+        background-color: var(--starry-night);
+        color: white;
+        z-index: 1050;
+        transition: all 0.3s ease;
+        box-shadow: 2px 0 10px rgba(0, 0, 0, 0.1);
+        display: flex;
+        flex-direction: column;
+    }
+    
+    .sidebar-header {
+        padding: 20px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    }
+    
+    .sidebar-header h3 {
+        margin: 0;
+        color: white;
+    }
+    
+    .sidebar-close-btn {
+        background: none;
+        border: none;
+        color: white;
+        font-size: 24px;
+        cursor: pointer;
+        padding: 0;
+    }
+    
+    .sidebar-menu {
+        list-style: none;
+        padding: 0;
+        margin: 0;
+        flex-grow: 1;
+    }
+    
+    .sidebar-menu li a {
+        display: block;
+        padding: 12px 20px;
+        color: white;
+        text-decoration: none;
+        transition: all 0.2s;
+        border-left: 3px solid transparent;
+    }
+    
+    .sidebar-menu li a:hover {
+        background-color: rgba(255, 255, 255, 0.1);
+        border-left: 3px solid var(--starlight);
+    }
+    
+    .sidebar-menu li a i {
+        width: 20px;
+        text-align: center;
+    }
+    
+    .sidebar-footer {
+        padding: 20px;
+        border-top: 1px solid rgba(255, 255, 255, 0.1);
+    }
+    
+    /* Show sidebar when active */
+    .sidebar-active .sidebar {
+        left: 0;
+    }
+    
+    .sidebar-active .sidebar-overlay {
+        opacity: 1;
+        visibility: visible;
+    }
+</style>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        // Sidebar Elements
+        const starIcon = document.querySelector('.navbar-brand i.fa-star');
+        const sidebarOverlay = document.querySelector('.sidebar-overlay');
+        const sidebarCloseBtn = document.querySelector('.sidebar-close-btn');
+        const cartLink = document.getElementById('cartLink');
+
+        // Update cart count in sidebar
+        function updateCartCount() {
+            const cart = JSON.parse(localStorage.getItem('cart')) || [];
+            if (cartLink) {
+                if (cart.length > 0) {
+                    cartLink.innerHTML = `<i class="fas fa-shopping-cart me-2"></i>Cart (${cart.length})`;
+                } else {
+                    cartLink.innerHTML = `<i class="fas fa-shopping-cart me-2"></i>Cart`;
+                }
+            }
+        }
+
+        updateCartCount(); // Call it on page load
+
+        // Toggle sidebar when star icon is clicked
+        starIcon?.addEventListener('click', function (e) {
+            e.preventDefault();
+            document.body.classList.add('sidebar-active');
+        });
+
+        // Close sidebar when overlay or close button is clicked
+        sidebarOverlay?.addEventListener('click', function () {
+            document.body.classList.remove('sidebar-active');
+        });
+
+        sidebarCloseBtn?.addEventListener('click', function () {
+            document.body.classList.remove('sidebar-active');
+        });
+
+        // Close sidebar on ESC key
+        document.addEventListener('keydown', function (e) {
+            if (e.key === 'Escape') {
+                document.body.classList.remove('sidebar-active');
+            }
+        });
+    });
+</script>
+
+  <style>
+    .profile-pic {
+      width: 120px;
+      height: 120px;
+      object-fit: cover;
+      border-radius: 50%;
+      border: 3px solid #0a1a2b;
+    }
+    .profile-container {
+      max-width: 600px;
+      margin: 40px auto;
+      padding: 20px;
+      border: 1px solid #dee2e6;
+      border-radius: 10px;
+      background: #f8f9fa;
+    }
+    .edit-btn {
+      float: right;
+    }
+  </style>
+</head>
+<body>
+
+<div class="container profile-container">
+  <div class="text-center mb-4">
+    <img id="profilePic" class="profile-pic" src="" alt="Profile Picture"/>
+    <input type="file" id="editProfilePic" accept="image/*" class="form-control mt-2" style="display: none;">
+    <button class="btn btn-sm btn-outline-secondary mt-2" onclick="document.getElementById('editProfilePic').click()">Change Photo</button>
+  </div>
+
+  <form id="editProfileForm">
+    <div class="mb-3">
+      <label for="editFirstName" class="form-label">First Name</label>
+      <input type="text" id="editFirstName" class="form-control" required />
+    </div>
+    <div class="mb-3">
+      <label for="editLastName" class="form-label">Last Name</label>
+      <input type="text" id="editLastName" class="form-control" required />
+    </div>
+    <div class="mb-3">
+      <label for="editEmail" class="form-label">Email</label>
+      <input type="email" id="editEmail" class="form-control" required />
+    </div>
+    <div class="mb-3">
+      <label for="editJoinDate" class="form-label">Join Date</label>
+      <input type="text" id="editJoinDate" class="form-control" disabled />
+    </div>
+    <button type="submit" class="btn btn-primary w-100"><i class="fas fa-save me-2"></i>Save Changes</button>
+  </form>
+</div>
+<hr class="my-4">
+
+<h5 class="text-center">Change Password</h5>
+<form id="changePasswordForm">
+  <div class="mb-3">
+    <label for="newPassword" class="form-label">New Password</label>
+    <input type="password" id="newPassword" class="form-control" placeholder="At least 8 characters" required />
+  </div>
+  <div class="mb-3">
+    <label for="confirmNewPassword" class="form-label">Confirm New Password</label>
+    <input type="password" id="confirmNewPassword" class="form-control" required />
+  </div>
+  <button type="submit" class="btn btn-outline-primary w-100">
+    <i class="fas fa-lock me-2"></i>Update Password
+  </button>
+</form>
+
+<script>
+  document.addEventListener('DOMContentLoaded', function () {
+    const userData = JSON.parse(localStorage.getItem('userData'));
+    const profilePicture = localStorage.getItem('profilePicture');
+
+    if (userData) {
+      document.getElementById('editFirstName').value = userData.firstName || '';
+      document.getElementById('editLastName').value = userData.lastName || '';
+      document.getElementById('editEmail').value = userData.email || '';
+      document.getElementById('editJoinDate').value = userData.joinDate || '';
+    }
+
+    if (profilePicture) {
+      document.getElementById('profilePic').src = profilePicture;
+    }
+
+    // Save changes
+    document.getElementById('editProfileForm').addEventListener('submit', function (e) {
+      e.preventDefault();
+
+      const updatedData = {
+        firstName: document.getElementById('editFirstName').value,
+        lastName: document.getElementById('editLastName').value,
+        email: document.getElementById('editEmail').value,
+        joinDate: document.getElementById('editJoinDate').value,
+        profilePic: localStorage.getItem('profilePicture') || '',
+      };
+
+      localStorage.setItem('userData', JSON.stringify(updatedData));
+      alert("Profile updated successfully!");
+    });
+
+    // Change profile picture
+    document.getElementById('editProfilePic').addEventListener('change', function (e) {
+      const file = e.target.files[0];
+      if (file) {
+        const reader = new FileReader();
+        reader.onload = function (e) {
+          const newPic = e.target.result;
+          document.getElementById('profilePic').src = newPic;
+          localStorage.setItem('profilePicture', newPic);
+
+          // Optionally update navbar profile immediately if it exists
+          const navbarIcon = document.getElementById('profileIcon');
+          if (navbarIcon) {
+            navbarIcon.innerHTML = `<img src="${newPic}" class="rounded-circle" style="width: 32px; height: 32px; object-fit: cover;">`;
+          }
+        };
+        reader.readAsDataURL(file);
+      }
+    });
+  });
+  document.getElementById('changePasswordForm').addEventListener('submit', function (e) {
+  e.preventDefault();
+
+  const newPassword = document.getElementById('newPassword').value;
+  const confirmNewPassword = document.getElementById('confirmNewPassword').value;
+
+  if (newPassword.length < 8) {
+    alert("Password must be at least 8 characters long.");
+    return;
+  }
+
+  if (newPassword !== confirmNewPassword) {
+    alert("Passwords do not match.");
+    return;
+  }
+
+  // Get current user data and update password
+  const userData = JSON.parse(localStorage.getItem('userData')) || {};
+  userData.password = newPassword;
+
+  localStorage.setItem('userData', JSON.stringify(userData));
+  alert("Password updated successfully!");
+
+  // Clear inputs
+  document.getElementById('newPassword').value = '';
+  document.getElementById('confirmNewPassword').value = '';
+});
+
+</script>
+<footer class="py-5 bg-dark text-white">
+        <div class="container py-4">
+            <div class="row">
+                <div class="col-lg-4 mb-4 mb-lg-0">
+                    <h5 class="text-uppercase mb-4">Starry Night Camping</h5>
+                    <p>Helping humanity remember we all live under the same sky.</p>
+                    <div class="mt-4">
+                        <a href="https://www.instagram.com/" class="text-white me-3"><i class="fab fa-instagram fa-lg"></i></a>
+                        <a href="https://www.facebook.com/share/v/1AaSpL8zLS/
+" class="text-white me-3"><i class="fab fa-facebook-f fa-lg"></i></a>
+                        <a href="https://x.com/shadowelkaiser/status/1918601825860632608?t=lrTATOUKrmp-6G6fyKtahQ&s=19" class="text-white me-3"><i class="fab fa-twitter fa-lg"></i></a>
+                        <a href="https://youtube.com/shorts/3-RlRmYshCQ?si=HyGl8HQXtO9KjAkM" class="text-white"><i class="fab fa-youtube fa-lg"></i></a>
+                    </div>
+                </div>
+                <div class="col-lg-4 mb-4 mb-lg-0">
+                    <h5 class="text-uppercase mb-4">Quick Links</h5>
+                    <ul class="list-unstyled">
+                        <li class="mb-2"><a href="index.html" class="text-white">Home</a></li>
+                        <li class="mb-2"><a href="about.html" class="text-white">About</a></li>
+                        <li class="mb-2"><a href="locations.html" class="text-white">Locations</a></li>
+                        <li class="mb-2"><a href="blog.html" class="text-white">Star Blog</a></li>
+                        <li><a href="cart.html" class="text-white">Your cart</a></li>
+                    </ul>
+                </div>
+                <div class="col-lg-4">
+                    <h5 class="text-uppercase mb-4">Dark Sky Alerts</h5>
+                    <p>Subscribe to know when the best stargazing nights are coming.</p>
+                    <form id="subscribeForm">
+                        <div class="mb-3">
+                            <input type="email" id="emailInput" class="form-control" placeholder="Your email" required>
+                        </div>
+                        <button type="submit" id="subscribeBtn" class="btn btn-outline-light w-100">
+                            <i class="fas fa-envelope me-2"></i><span id="subscribeText">Subscribe</span>
+                        </button>
+                    </form>
+                </div>
+            </div>
+            <hr class="my-4 bg-secondary">
+            <div class="text-center small">
+                <p class="mb-0">&copy; 2023 Starry Night Camping. All rights reserved.</p>
+            </div>
+        </div>
+    </footer>
+    <script>
+  const form = document.getElementById("subscribeForm");
+  const emailInput = document.getElementById("emailInput");
+  const subscribeBtn = document.getElementById("subscribeBtn");
+  const subscribeText = document.getElementById("subscribeText");
+
+  // Check sessionStorage on load
+  if (sessionStorage.getItem("subscribed") === "true") {
+    setSubscribedState();
+  }
+
+  form.addEventListener("submit", function (e) {
+    e.preventDefault();
+
+    const email = emailInput.value.trim();
+    const isValid = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+
+    if (isValid) {
+      sessionStorage.setItem("subscribed", "true");
+      setSubscribedState();
+      emailInput.value = "";
+    }
+  });
+
+  subscribeBtn.addEventListener("click", function () {
+    if (sessionStorage.getItem("subscribed") !== "true") {
+      sessionStorage.setItem("subscribed", "true");
+      setSubscribedState();
+      emailInput.value = "";
+    }
+  });
+
+  function setSubscribedState() {
+    subscribeBtn.classList.remove("btn-outline-light");
+    subscribeBtn.classList.add("btn-light", "text-dark");
+    subscribeText.textContent = "Subscribed";
+  }
+</script>
+</body>
+</html>
